@@ -7,7 +7,7 @@ import type { IUser } from "./user.interface";
 
 const createUser = async (req: Request, res: Response) => {
     const user: IUser = req.body;
-    // console.log(user);
+    console.log(user);
     try {
         const result = await userService.createUserService(user);
         if (result.rows.length > 0) {
