@@ -4,9 +4,10 @@ import { issuesService } from "./issues.service";
 
 const createIssue = async (req: Request, res: Response) => {
     try {
-        console.log(req.body);
-        //const { title, description, status, priority, assigned_to } = req.body;
-        const result = await issuesService.createIssue(req.body);
+        //  console.log(req.body);
+        //  console.log(req.user);
+        const { id, name, email, role } = req.user;
+        const result = await issuesService.createIssue(req.body, id);
         if (result.rowCount === 0) {
             return res.status(400).json({
                 status: false,
