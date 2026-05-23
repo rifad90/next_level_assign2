@@ -94,9 +94,69 @@ const getIssueById = async (id: string) => {
         throw new Error("Failed to retrieve issue: " + error.message);
     }
 }
+const updateIssueById = async (id: string, userId: string, role: string, issue: Partial<IIssue>) => {
+    const { title, description, type, status } = issue;
+    // const { id: userId, name, email, role } = req.user;
 
+    if (role.toLowerCase() !== "maintainer") {
+        try {
+            const result = await pool.query(`UPDATE issues 
+                SET title = COALESCE($1, title), 
+                description = COALESCE($2, description), 
+                type = COALESCE($3, type), 
+                status = COALESCE($4, status), 
+                updated_at = NOW()
+                 WHERE id = $5 
+                 AND reporter_id = $6
+                 and status = $7 RETURNING *`,
+                [title, description, type, status, id, userId, "open"]);
+            if (result.rowCount === 0) {
+                throw new Error("Issue not found or you don't have permission to update this issue");
+            }
+            return result;
+        } catch (error: any) {
+            throw new Error("Failed to update issue: " + error.message);
+        }
+    } else {
+        try {
+            const result = await pool.query(`UPDATE issues 
+                SET title = COALESCE($1, title), 
+                description = COALESCE($2, description), 
+                type = COALESCE($3, type), 
+                status = COALESCE($4, status), 
+                updated_at = NOW()
+                 WHERE id = $5 RETURNING *`,
+                [title, description, type, status, id]);
+            if (result.rowCount === 0) {
+                throw new Error("Issue not found");
+            }
+            return result;
+        } catch (error: any) {
+            throw new Error("Failed to update issue: " + error.message);
+        }
+    }
+
+}
+const deleteIssueById = async (issueId: string, role: string) => {
+    console.log(issueId, role);
+
+    if (role.toLowerCase() === "maintainer") {
+        try {
+            const result = await pool.query(`DELETE FROM issues 
+                WHERE id = $1`,
+                [issueId]);
+            return result;
+        } catch (error: any) {
+            throw new Error("Failed to delete issue: " + error.message);
+        }
+    } else {
+        throw new Error("You don't have permission to delete this issue");
+    }
+}
 export const issuesService = {
     createIssue,
     getALLIssues,
-    getIssueById
+    getIssueById,
+    updateIssueById,
+    deleteIssueById
 }

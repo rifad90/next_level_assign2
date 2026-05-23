@@ -7,6 +7,12 @@ import type { IUser } from "./user.interface";
 
 const createUser = async (req: Request, res: Response) => {
     const user: IUser = req.body;
+    if (user.role !== "contributor" && user.role !== "maintainer") {
+        return res.status(400).json({
+            status: false,
+            message: "Invalid role. Role must be either 'contributor' or 'maintainer'."
+        });
+    }
     console.log(user);
     try {
         const result = await userService.createUserService(user);

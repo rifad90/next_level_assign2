@@ -67,7 +67,7 @@ const getALLIssues = async (req: Request, res: Response) => {
 const getIssueById = async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
-        const result = await issuesService.getIssueById(id);
+        const result = await issuesService.getIssueById(id as string);
         if (!result) {
             return res.status(404).json({
                 status: false,
@@ -90,8 +90,65 @@ const getIssueById = async (req: Request, res: Response) => {
     }
 }
 
+const updateIssueById = async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { title, description, type, status } = req.body;
+    const { id: userId, name, email, role } = req.user;
+
+    try {
+        const result = await issuesService.updateIssueById(id as string, userId as string, role as string, { title, description, type, status });
+        if (result.rowCount === 0) {
+            return res.status(404).json({
+                status: false,
+                message: "Issue not found"
+
+            });
+        }
+
+        res.status(200).json({
+            status: true,
+            message: "Issue updated successfully",
+            data: result.rows[0]
+        });
+    } catch (error: any) {
+        res.status(500).json({
+            status: false,
+            message: error.message,
+            error: error
+        });
+    }
+}
+const deleteIssueById = async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { id: userId, name, email, role } = req.user;
+
+    try {
+        const result = await issuesService.deleteIssueById(id as string, role as string);
+        if (result.rowCount === 0) {
+            return res.status(404).json({
+                status: false,
+                message: "Issue not found"
+
+            });
+        }
+
+        res.status(200).json({
+            status: true,
+            message: "Issue deleted successfully"
+        });
+    } catch (error: any) {
+        res.status(500).json({
+            status: false,
+            message: error.message,
+            error: error
+        });
+    }
+}
+
 export const issuesController = {
     createIssue,
     getALLIssues,
-    getIssueById
+    getIssueById,
+    updateIssueById,
+    deleteIssueById
 } 
